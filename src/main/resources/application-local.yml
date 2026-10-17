@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:5433/merchant_dashboard
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  flyway:
+    locations:
+      - classpath:db/migration
+      - classpath:db/seed
