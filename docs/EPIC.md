@@ -92,7 +92,7 @@ com.awin.merchantdashboard
     service/                      merchant list, MerchantAccessGuard
     controller/                   GET /merchants delegate
   kpi/
-    model/                        SaleTransaction, SaleStatus, ClickDaily, ClickDailyId
+    model/                        SaleTransaction, SaleStatus, ClickDaily
     repository/                   SaleTransactionRepository, ClickDailyRepository
     service/                      revenue, transactions, clicks
     controller/                   the three KPI delegates
@@ -128,7 +128,7 @@ A column exists only if the dashboard reads it or the API needs it to compute wh
 | AppUser | `app_user` | `id`, `username` (unique), `password_hash` (BCrypt) | Login only. The dashboard never renders a user, so there is no display name or enabled flag. |
 | UserMerchant | `user_merchant` | `user_id` (FK to `app_user.id`), `merchant_id` (FK to `merchant.id`). Composite primary key. | The link between a login and a merchant. Decides which merchants appear in the switcher and which return 403. No role: the screen has no permission distinction. |
 | SaleTransaction | `sale_transaction` | `id`, `merchant_id`, `transaction_date`, `sale_amount`, `status` (PENDING, APPROVED, DECLINED) | Revenue and the trend sum `sale_amount`. Transactions counts rows. "Validate commissions" counts PENDING rows, so the commission is the transaction itself and there is no commission amount or commission table. DECLINED rows are excluded from Revenue and Transactions. |
-| ClickDaily | `click_daily` | `merchant_id`, `click_date`, `click_count`. Unique on `(merchant_id, click_date)` | The Clicks card is one number per merchant per day. There is no publisher split because the screen never shows one. |
+| ClickDaily | `click_daily` | `id`, `merchant_id`, `click_date`, `click_count`. Unique on `(merchant_id, click_date)` | The Clicks card is one number per merchant per day. There is no publisher split because the screen never shows one. |
 | Offer | `offer` | `id`, `merchant_id`, `expires_at`, `status` (ACTIVE, REMOVED) | "Remove expired offers" = ACTIVE rows with `expires_at` before now. No title or start date: the screen shows a count. |
 | ProductCategory | `product_category` | `id`, `merchant_id`, `mapped` (boolean) | "Map product categories" = rows where `mapped` is false. No category name: the screen shows a count. |
 | AffiliateApplication | `affiliate_application` | `id`, `merchant_id`, `status` (PENDING, REVIEWED) | "Review applications" counts rows with `status = 'PENDING'`. No applicant column. See below. |

@@ -6,7 +6,6 @@ import static org.instancio.Select.field;
 import com.awin.merchantdashboard.auth.model.AppUser;
 import com.awin.merchantdashboard.auth.repository.AppUserRepository;
 import com.awin.merchantdashboard.kpi.model.ClickDaily;
-import com.awin.merchantdashboard.kpi.model.ClickDailyId;
 import com.awin.merchantdashboard.kpi.model.SaleStatus;
 import com.awin.merchantdashboard.kpi.model.SaleTransaction;
 import com.awin.merchantdashboard.kpi.repository.ClickDailyRepository;
@@ -160,6 +159,7 @@ class FlywayMigrationTest {
                 .set(field(SaleTransaction.class, "status"), SaleStatus.PENDING)
                 .create());
         clicks.saveAndFlush(Instancio.of(ClickDaily.class)
+                .set(field(ClickDaily.class, "id"), null)
                 .set(field(ClickDaily.class, "merchantId"), merchantId)
                 .set(field(ClickDaily.class, "clickDate"), LocalDate.parse("2026-01-15"))
                 .set(field(ClickDaily.class, "clickCount"), 12)
@@ -212,24 +212,10 @@ class FlywayMigrationTest {
                 .set(field(UserMerchantId.class, "userId"), userId)
                 .set(field(UserMerchantId.class, "merchantId"), merchantId)
                 .create();
-        ClickDailyId clickId = Instancio.of(ClickDailyId.class)
-                .set(field(ClickDailyId.class, "merchantId"), merchantId)
-                .set(field(ClickDailyId.class, "clickDate"), LocalDate.parse("2026-01-15"))
-                .create();
-        ClickDailyId sameClick = Instancio.of(ClickDailyId.class)
-                .set(field(ClickDailyId.class, "merchantId"), merchantId)
-                .set(field(ClickDailyId.class, "clickDate"), LocalDate.parse("2026-01-15"))
-                .create();
         assertThat(userMerchants.findById(linkId)).isPresent();
-        assertThat(clicks.findById(clickId)).isPresent();
         assertThat(linkId.equals(linkId)).isTrue();
-        assertThat(clickId.equals(clickId)).isTrue();
         assertThat(linkId).isEqualTo(sameLink);
-        assertThat(clickId).isEqualTo(sameClick);
-        assertThat(linkId.equals(clickId)).isFalse();
-        assertThat(clickId.equals(linkId)).isFalse();
         assertThat(linkId.hashCode()).isEqualTo(Objects.hash(userId, merchantId));
-        assertThat(clickId.hashCode()).isEqualTo(Objects.hash(merchantId, LocalDate.parse("2026-01-15")));
     }
 
     private List<String> locations() {
