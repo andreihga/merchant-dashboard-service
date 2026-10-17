@@ -20,6 +20,7 @@ logs/
 # Dependencies / build output
 node_modules/
 dist/
+.gradle/
 build/
 out/
 target/

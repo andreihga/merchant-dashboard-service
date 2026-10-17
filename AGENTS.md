@@ -12,6 +12,7 @@
 - Keep changes small, focused, and consistent with existing code.
 - Avoid unnecessary abstractions and dependencies.
 - Do not change the OpenAPI contract or unrelated files unless the task asks for it.
+- Do not commit credentials. Local secrets come from a gitignored `.env`. The rule is in `docs/EPIC.md`.
 
 ## Stack
 

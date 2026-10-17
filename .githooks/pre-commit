@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+snapshot=$(mktemp)
+git diff > "$snapshot"
+./gradlew spotlessApply
+if ! git diff | cmp -s - "$snapshot"; then
+    rm -f "$snapshot"
+    echo "spotlessApply formatted files. Stage the changes and commit again."
+    exit 1
+fi
+rm -f "$snapshot"
