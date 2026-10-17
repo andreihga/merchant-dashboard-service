@@ -56,7 +56,7 @@ class HealthSmokeTest {
             try (ResultSet history =
                     statement.executeQuery("select count(*) from flyway_schema_history where version is not null")) {
                 assertThat(history.next()).isTrue();
-                assertThat(history.getInt(1)).isZero();
+                assertThat(history.getInt(1)).isEqualTo(3);
             }
             try (ResultSet created = statement.executeQuery("select count(*) from flyway_schema_history")) {
                 assertThat(created.next()).isTrue();
@@ -65,7 +65,7 @@ class HealthSmokeTest {
             try (ResultSet merchant = statement.executeQuery(
                     "select count(*) from information_schema.tables where lower(table_name) = 'merchant'")) {
                 assertThat(merchant.next()).isTrue();
-                assertThat(merchant.getInt(1)).isZero();
+                assertThat(merchant.getInt(1)).isEqualTo(1);
             }
         }
     }
