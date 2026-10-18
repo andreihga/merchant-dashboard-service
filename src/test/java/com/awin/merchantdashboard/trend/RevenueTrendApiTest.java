@@ -103,6 +103,7 @@ class RevenueTrendApiTest {
         saveSale(MERCHANT, "2026-10-18T00:00:00Z", "999.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-03T12:00:00Z", "999.0000", SaleStatus.APPROVED);
         merchants.saveAndFlush(merchant(8002L, "Other Shop"));
+
         saveSale(8002L, "2026-10-15T09:00:00Z", "999.0000", SaleStatus.APPROVED);
 
         String body = trend(MERCHANT, "LAST_7_DAYS")
