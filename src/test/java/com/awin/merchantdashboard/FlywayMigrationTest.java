@@ -12,7 +12,6 @@ import com.awin.merchantdashboard.kpi.repository.ClickDailyRepository;
 import com.awin.merchantdashboard.kpi.repository.SaleTransactionRepository;
 import com.awin.merchantdashboard.merchant.model.Merchant;
 import com.awin.merchantdashboard.merchant.model.UserMerchant;
-import com.awin.merchantdashboard.merchant.model.UserMerchantId;
 import com.awin.merchantdashboard.merchant.repository.MerchantRepository;
 import com.awin.merchantdashboard.merchant.repository.UserMerchantRepository;
 import com.awin.merchantdashboard.todo.model.AffiliateApplication;
@@ -31,7 +30,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
@@ -148,6 +146,7 @@ class FlywayMigrationTest {
         Long userId = jdbc.queryForObject("select id from app_user where username = ?", Long.class, "ada");
 
         userMerchants.saveAndFlush(Instancio.of(UserMerchant.class)
+                .set(field(UserMerchant.class, "id"), null)
                 .set(field(UserMerchant.class, "userId"), userId)
                 .set(field(UserMerchant.class, "merchantId"), merchantId)
                 .create());
@@ -204,18 +203,10 @@ class FlywayMigrationTest {
                         "select status from affiliate_application where merchant_id = ?", String.class, merchantId))
                 .isEqualTo("PENDING");
 
-        UserMerchantId linkId = Instancio.of(UserMerchantId.class)
-                .set(field(UserMerchantId.class, "userId"), userId)
-                .set(field(UserMerchantId.class, "merchantId"), merchantId)
-                .create();
-        UserMerchantId sameLink = Instancio.of(UserMerchantId.class)
-                .set(field(UserMerchantId.class, "userId"), userId)
-                .set(field(UserMerchantId.class, "merchantId"), merchantId)
-                .create();
+        Long linkId = jdbc.queryForObject(
+                "select id from user_merchant where user_id = ? and merchant_id = ?", Long.class, userId, merchantId);
+        assertThat(linkId).isNotNull();
         assertThat(userMerchants.findById(linkId)).isPresent();
-        assertThat(linkId.equals(linkId)).isTrue();
-        assertThat(linkId).isEqualTo(sameLink);
-        assertThat(linkId.hashCode()).isEqualTo(Objects.hash(userId, merchantId));
     }
 
     private List<String> locations() {

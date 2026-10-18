@@ -87,7 +87,7 @@ com.awin.merchantdashboard
     service/                      login and token issuance
     controller/                   POST /auth/token delegate
   merchant/
-    model/                        Merchant, UserMerchant, UserMerchantId
+    model/                        Merchant, UserMerchant
     repository/                   MerchantRepository, UserMerchantRepository
     service/                      merchant list, MerchantAccessGuard
     controller/                   GET /merchants delegate
@@ -126,7 +126,7 @@ A column exists only if the dashboard reads it or the API needs it to compute wh
 | --- | --- | --- | --- |
 | Merchant | `merchant` | `id` (assigned, e.g. 1001), `name`, `currency` (ISO 4217) | The switcher shows "Example Merchant (1001)". `currency` produces the £ symbol on Revenue and the trend. |
 | AppUser | `app_user` | `id`, `username` (unique), `password_hash` (BCrypt) | Login only. The dashboard never renders a user, so there is no display name or enabled flag. |
-| UserMerchant | `user_merchant` | `user_id` (FK to `app_user.id`), `merchant_id` (FK to `merchant.id`). Composite primary key. | The link between a login and a merchant. Decides which merchants appear in the switcher and which return 403. No role: the screen has no permission distinction. |
+| UserMerchant | `user_merchant` | `id` (identity), `user_id` (FK to `app_user.id`), `merchant_id` (FK to `merchant.id`). Unique on `(user_id, merchant_id)`. | The link between a login and a merchant. Decides which merchants appear in the switcher and which return 403. No role: the screen has no permission distinction. |
 | SaleTransaction | `sale_transaction` | `id`, `merchant_id`, `transaction_date`, `sale_amount`, `status` (PENDING, APPROVED, DECLINED) | Revenue and the trend sum `sale_amount`. Transactions counts rows. "Validate commissions" counts PENDING rows, so the commission is the transaction itself and there is no commission amount or commission table. DECLINED rows are excluded from Revenue and Transactions. |
 | ClickDaily | `click_daily` | `id`, `merchant_id`, `click_date`, `click_count`. Unique on `(merchant_id, click_date)` | The Clicks card is one number per merchant per day. There is no publisher split because the screen never shows one. |
 | Offer | `offer` | `id`, `merchant_id`, `expires_at`, `status` (ACTIVE, REMOVED) | "Remove expired offers" = ACTIVE rows with `expires_at` before now. No title or start date: the screen shows a count. |
