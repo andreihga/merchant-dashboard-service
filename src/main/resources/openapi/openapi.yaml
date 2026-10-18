@@ -148,6 +148,27 @@ paths:
           $ref: "#/components/responses/Problem"
         "404":
           $ref: "#/components/responses/Problem"
+  /api/v1/merchants/{merchantId}/todos:
+    get:
+      operationId: getTodos
+      tags:
+        - todos
+      summary: To-do counters for a merchant
+      parameters:
+        - $ref: "#/components/parameters/MerchantId"
+      responses:
+        "200":
+          description: Four open to-do counts. No period parameter.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoList"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
 components:
   securitySchemes:
     bearerAuth:
@@ -314,6 +335,30 @@ components:
           description: One point per day of the comparison window, ordered by date, zero-filled
           items:
             $ref: "#/components/schemas/RevenueTrendPoint"
+    TodoList:
+      type: object
+      required:
+        - expiredOffers
+        - categoriesToMap
+        - commissionsToValidate
+        - applicationsToReview
+      properties:
+        expiredOffers:
+          type: integer
+          format: int64
+          description: ACTIVE offers with expires_at before now
+        categoriesToMap:
+          type: integer
+          format: int64
+          description: Product categories with mapped = false
+        commissionsToValidate:
+          type: integer
+          format: int64
+          description: PENDING sales for the merchant
+        applicationsToReview:
+          type: integer
+          format: int64
+          description: PENDING affiliate applications
     Merchant:
       type: object
       required:

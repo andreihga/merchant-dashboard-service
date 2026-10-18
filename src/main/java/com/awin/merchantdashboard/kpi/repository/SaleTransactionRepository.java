@@ -64,4 +64,7 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
             @Param("statuses") Collection<SaleStatus> statuses,
             @Param("startInclusive") Instant startInclusive,
             @Param("endExclusive") Instant endExclusive);
+
+    /** Pending sales for the to-do counter. Uses {@code sale_transaction_pending_idx} on (merchant_id). */
+    long countByMerchantIdAndStatus(long merchantId, SaleStatus status);
 }
