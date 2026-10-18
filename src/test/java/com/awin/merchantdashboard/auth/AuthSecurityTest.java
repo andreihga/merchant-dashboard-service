@@ -81,7 +81,7 @@ class AuthSecurityTest {
     }
 
     @Test
-    void wrongPasswordReturns401() throws Exception {
+    void given_wrong_password_when_post_auth_token_then_returns_401() throws Exception {
         mockMvc.perform(post("/api/v1/auth/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(credentials(USERNAME, "wrong-password")))
@@ -89,7 +89,7 @@ class AuthSecurityTest {
     }
 
     @Test
-    void unknownUserReturns401() throws Exception {
+    void given_unknown_user_when_post_auth_token_then_returns_401() throws Exception {
         mockMvc.perform(post("/api/v1/auth/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(credentials("nobody", PASSWORD)))
@@ -97,20 +97,21 @@ class AuthSecurityTest {
     }
 
     @Test
-    void missingTokenReturns401() throws Exception {
+    void given_no_token_when_get_protected_resource_then_returns_401() throws Exception {
         mockMvc.perform(get("/api/v1/merchants/{merchantId}/access", LINKED_MERCHANT_ID))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void invalidTokenReturns401() throws Exception {
+    void given_invalid_token_when_get_protected_resource_then_returns_401() throws Exception {
         mockMvc.perform(get("/api/v1/merchants/{merchantId}/access", LINKED_MERCHANT_ID)
                         .header("Authorization", "Bearer not-a-jwt"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void validLoginReturnsAJwtForTheUserThatExpiresInOneHour(CapturedOutput output) throws Exception {
+    void given_valid_credentials_when_post_auth_token_then_returns_jwt_for_user_expiring_in_one_hour(CapturedOutput output)
+            throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/auth/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(credentials(USERNAME, PASSWORD)))
@@ -127,21 +128,21 @@ class AuthSecurityTest {
     }
 
     @Test
-    void linkedMerchantReturns200() throws Exception {
+    void given_linked_merchant_when_get_protected_resource_then_returns_200() throws Exception {
         mockMvc.perform(get("/api/v1/merchants/{merchantId}/access", LINKED_MERCHANT_ID)
                         .header("Authorization", "Bearer " + login()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void merchantTheUserIsNotLinkedToReturns403() throws Exception {
+    void given_unlinked_merchant_when_get_protected_resource_then_returns_403() throws Exception {
         mockMvc.perform(get("/api/v1/merchants/{merchantId}/access", FOREIGN_MERCHANT_ID)
                         .header("Authorization", "Bearer " + login()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void unknownMerchantReturns404() throws Exception {
+    void given_unknown_merchant_when_get_protected_resource_then_returns_404() throws Exception {
         mockMvc.perform(get("/api/v1/merchants/{merchantId}/access", UNKNOWN_MERCHANT_ID)
                         .header("Authorization", "Bearer " + login()))
                 .andExpect(status().isNotFound());

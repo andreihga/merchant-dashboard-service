@@ -35,7 +35,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void logsTheRequestLineWithoutSecrets() throws Exception {
+    void given_authenticated_request_when_filter_runs_then_logs_request_line_without_secrets() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/merchants/1001");
         request.setQueryString("access_token=secret-token");
         request.addHeader("Authorization", "Bearer secret-token");
@@ -73,7 +73,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void clientErrorDoesNotLogTheStackTrace() throws Exception {
+    void given_client_error_when_filter_runs_then_does_not_log_stack_trace() throws Exception {
         Throwable failure = Instancio.create(IllegalStateException.class);
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/token");
         request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, failure);
@@ -90,7 +90,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void serverErrorLogsTheStackTrace() throws Exception {
+    void given_server_error_when_filter_runs_then_logs_stack_trace() throws Exception {
         Throwable failure = Instancio.create(IllegalStateException.class);
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/boom");
         request.setAttribute(DispatcherServlet.EXCEPTION_ATTRIBUTE, failure);
@@ -112,7 +112,7 @@ class RequestLoggingFilterTest {
     }
 
     @Test
-    void serverErrorUsesTheDispatchedException() throws Exception {
+    void given_dispatched_server_error_when_filter_runs_then_uses_dispatched_exception() throws Exception {
         Throwable failure = Instancio.create(IllegalArgumentException.class);
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/boom");
         request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, failure);

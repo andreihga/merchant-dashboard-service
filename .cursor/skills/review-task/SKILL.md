@@ -22,6 +22,7 @@ Review only. Do not edit files, commit, or start the next task.
 - Logs do not contain the password, the token, or the response body.
 - Committed YAML and Compose do not contain a database password, an HMAC or JWT signing key, or another credential. Local secrets stay in `.env`.
 - Tests cover the behavior this task added. They use H2, the V1–V3 Flyway scripts, and their own rows. They do not load `db/seed`.
+- New or renamed `@Test` / `@ParameterizedTest` methods use full snake_case `given_x_when_y_then_z` naming.
 - Tests outside `AuthSecurityTest` do not call `POST /api/v1/auth/token`. They use `TestHelpers.bearer(...)`, and they reuse `TestHelpers` helpers instead of copying them.
 - The task checkbox matches what landed.
 - JaCoCo line coverage of hand-written `src/main` is at or above 90%. See "Coverage" below.

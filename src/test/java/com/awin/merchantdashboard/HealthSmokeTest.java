@@ -32,7 +32,7 @@ class HealthSmokeTest {
     private DataSource dataSource;
 
     @Test
-    void healthIsUpWithoutAToken(CapturedOutput output) throws Exception {
+    void given_no_token_when_get_health_then_is_up(CapturedOutput output) throws Exception {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"));
@@ -42,7 +42,7 @@ class HealthSmokeTest {
     }
 
     @Test
-    void readinessIncludesTheDatabase() throws Exception {
+    void given_app_running_when_get_readiness_then_includes_database() throws Exception {
         mockMvc.perform(get("/actuator/health/readiness"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
@@ -50,7 +50,7 @@ class HealthSmokeTest {
     }
 
     @Test
-    void flywayRunsOnEmptyH2() throws Exception {
+    void given_empty_h2_when_app_starts_then_flyway_runs() throws Exception {
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {
             try (ResultSet history =

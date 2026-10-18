@@ -6,6 +6,7 @@ import com.awin.merchantdashboard.kpi.model.SaleStatus;
 import com.awin.merchantdashboard.kpi.model.SaleTransaction;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,4 +50,18 @@ public interface SaleTransactionRepository extends JpaRepository<SaleTransaction
             @Param("previousFrom") Instant previousFrom,
             @Param("currentFrom") Instant currentFrom,
             @Param("currentTo") Instant currentTo);
+
+    /** Counted sales in {@code [startInclusive, endExclusive)}. The caller groups by UTC day. */
+    @Query("""
+            select t from SaleTransaction t
+            where t.merchantId = :merchantId
+              and t.status in :statuses
+              and t.transactionDate >= :startInclusive
+              and t.transactionDate < :endExclusive
+            """)
+    List<SaleTransaction> findCountedInRange(
+            @Param("merchantId") long merchantId,
+            @Param("statuses") Collection<SaleStatus> statuses,
+            @Param("startInclusive") Instant startInclusive,
+            @Param("endExclusive") Instant endExclusive);
 }

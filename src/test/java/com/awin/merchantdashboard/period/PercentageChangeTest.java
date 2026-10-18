@@ -8,14 +8,14 @@ import org.junit.jupiter.api.Test;
 class PercentageChangeTest {
 
     @Test
-    void returnsNullWhenPreviousIsZero() {
+    void given_previous_zero_when_compute_percentage_change_then_returns_null() {
         assertThat(PercentageChange.of(new BigDecimal("100.00"), BigDecimal.ZERO))
                 .isNull();
         assertThat(PercentageChange.of(42L, 0L)).isNull();
     }
 
     @Test
-    void computesScaleTwoHalfUp() {
+    void given_non_zero_previous_when_compute_percentage_change_then_scale_two_half_up() {
         assertThat(PercentageChange.of(new BigDecimal("150.00"), new BigDecimal("100.00")))
                 .isEqualByComparingTo("50.00");
         assertThat(PercentageChange.of(new BigDecimal("100.00"), new BigDecimal("300.00")))

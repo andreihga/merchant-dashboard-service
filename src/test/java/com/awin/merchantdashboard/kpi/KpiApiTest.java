@@ -3,6 +3,7 @@ package com.awin.merchantdashboard.kpi;
 import static com.awin.merchantdashboard.helpers.TestHelpers.bearer;
 import static com.awin.merchantdashboard.helpers.TestHelpers.link;
 import static com.awin.merchantdashboard.helpers.TestHelpers.merchant;
+import static com.awin.merchantdashboard.helpers.TestHelpers.sale;
 import static com.awin.merchantdashboard.helpers.TestHelpers.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.field;
@@ -14,12 +15,10 @@ import com.awin.merchantdashboard.auth.model.AppUser;
 import com.awin.merchantdashboard.auth.repository.AppUserRepository;
 import com.awin.merchantdashboard.kpi.model.ClickDaily;
 import com.awin.merchantdashboard.kpi.model.SaleStatus;
-import com.awin.merchantdashboard.kpi.model.SaleTransaction;
 import com.awin.merchantdashboard.kpi.repository.ClickDailyRepository;
 import com.awin.merchantdashboard.kpi.repository.SaleTransactionRepository;
 import com.awin.merchantdashboard.merchant.repository.MerchantRepository;
 import com.awin.merchantdashboard.merchant.repository.UserMerchantRepository;
-import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -91,7 +90,8 @@ class KpiApiTest {
     }
 
     @Test
-    void revenueAndTransactionsUseTheirOwnPeriods() throws Exception {
+    void given_sales_in_different_windows_when_get_revenue_and_transactions_with_different_periods_then_each_uses_its_own_window()
+            throws Exception {
         // 7-day window is 10-11..10-17 and its previous window is 10-04..10-10.
         saveSale(MERCHANT, "2026-10-15T09:00:00Z", "100.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-08T09:00:00Z", "50.0000", SaleStatus.APPROVED);
@@ -120,7 +120,7 @@ class KpiApiTest {
     }
 
     @Test
-    void declinedSalesAreExcludedFromRevenueAndTransactions() throws Exception {
+    void given_declined_sale_when_get_revenue_and_transactions_then_declined_is_excluded() throws Exception {
         saveSale(MERCHANT, "2026-10-15T09:00:00Z", "40.0000", SaleStatus.PENDING);
         saveSale(MERCHANT, "2026-10-15T10:00:00Z", "60.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-15T11:00:00Z", "900.0000", SaleStatus.DECLINED);
@@ -135,7 +135,7 @@ class KpiApiTest {
     }
 
     @Test
-    void revenueHasCurrencyScaleTwoAndRoundsHalfUp() throws Exception {
+    void given_fractional_sale_when_get_revenue_then_currency_scale_two_and_rounds_half_up() throws Exception {
         saveSale(MERCHANT, "2026-10-15T09:00:00Z", "10.0050", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-16T09:00:00Z", "20.0000", SaleStatus.APPROVED);
 
@@ -149,7 +149,7 @@ class KpiApiTest {
     }
 
     @Test
-    void transactionsAndClicksAreIntegersWithNoCurrency() throws Exception {
+    void given_sales_and_clicks_when_get_transactions_and_clicks_then_integers_with_no_currency() throws Exception {
         saveSale(MERCHANT, "2026-10-15T09:00:00Z", "10.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-16T09:00:00Z", "20.0000", SaleStatus.APPROVED);
         clickRows.saveAndFlush(clicks(MERCHANT, LocalDate.parse("2026-10-15"), 7));
@@ -170,7 +170,8 @@ class KpiApiTest {
     }
 
     @Test
-    void clicksSumTheWindowCountMissingDaysAsZeroAndCompareToThePreviousWindow() throws Exception {
+    void given_clicks_in_current_and_previous_windows_when_get_clicks_then_sums_window_and_compares_to_previous()
+            throws Exception {
         clickRows.saveAndFlush(clicks(MERCHANT, LocalDate.parse("2026-10-17"), 10));
         clickRows.saveAndFlush(clicks(MERCHANT, LocalDate.parse("2026-10-11"), 20));
         clickRows.saveAndFlush(clicks(MERCHANT, LocalDate.parse("2026-10-10"), 15));
@@ -189,7 +190,7 @@ class KpiApiTest {
     }
 
     @Test
-    void salesAreCountedByUtcDayAtTheWindowEdges() throws Exception {
+    void given_sales_at_utc_day_edges_when_get_transactions_then_counted_by_utc_day() throws Exception {
         saveSale(MERCHANT, "2026-10-17T23:59:59Z", "1.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-11T00:00:00Z", "2.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-10T23:59:59Z", "4.0000", SaleStatus.APPROVED);
@@ -203,7 +204,8 @@ class KpiApiTest {
     }
 
     @Test
-    void lastMonthIsComparedWithTheMonthBeforeIt() throws Exception {
+    void given_sales_in_previous_two_months_when_get_revenue_for_last_month_then_compared_with_month_before()
+            throws Exception {
         saveSale(MERCHANT, "2026-09-30T23:00:00Z", "30.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-08-31T23:00:00Z", "10.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-02T09:00:00Z", "500.0000", SaleStatus.APPROVED);
@@ -217,7 +219,7 @@ class KpiApiTest {
     }
 
     @Test
-    void otherMerchantsDataIsNotCounted() throws Exception {
+    void given_other_merchant_sales_when_get_revenue_then_other_merchant_data_is_not_counted() throws Exception {
         merchants.saveAndFlush(merchant(7002L, "Other Shop"));
         saveSale(MERCHANT, "2026-10-15T09:00:00Z", "10.0000", SaleStatus.APPROVED);
         saveSale(7002L, "2026-10-15T09:00:00Z", "999.0000", SaleStatus.APPROVED);
@@ -231,14 +233,14 @@ class KpiApiTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"revenue", "transactions", "clicks"})
-    void missingTokenReturns401(String kpi) throws Exception {
+    void given_no_token_when_get_kpi_then_returns_401(String kpi) throws Exception {
         mockMvc.perform(get(BASE + MERCHANT + "/kpis/" + kpi).param("period", "LAST_7_DAYS"))
                 .andExpect(status().isUnauthorized());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"revenue", "transactions", "clicks"})
-    void merchantTheCallerIsNotLinkedToReturns403(String kpi) throws Exception {
+    void given_unlinked_merchant_when_get_kpi_then_returns_403(String kpi) throws Exception {
         merchants.saveAndFlush(merchant(7003L, "Foreign Shop"));
 
         mockMvc.perform(get(BASE + 7003L + "/kpis/" + kpi)
@@ -249,7 +251,7 @@ class KpiApiTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"revenue", "transactions", "clicks"})
-    void unknownMerchantReturns404(String kpi) throws Exception {
+    void given_unknown_merchant_when_get_kpi_then_returns_404(String kpi) throws Exception {
         mockMvc.perform(get(BASE + 7999L + "/kpis/" + kpi)
                         .param("period", "LAST_7_DAYS")
                         .header("Authorization", bearer(jwtEncoder, caller.getId())))
@@ -258,7 +260,7 @@ class KpiApiTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"revenue", "transactions", "clicks"})
-    void unknownPeriodReturns400(String kpi) throws Exception {
+    void given_unknown_period_when_get_kpi_then_returns_400(String kpi) throws Exception {
         mockMvc.perform(get(BASE + MERCHANT + "/kpis/" + kpi)
                         .param("period", "LAST_CENTURY")
                         .header("Authorization", bearer(jwtEncoder, caller.getId())))
@@ -273,16 +275,6 @@ class KpiApiTest {
 
     private void saveSale(long merchantId, String instant, String amount, SaleStatus status) {
         sales.saveAndFlush(sale(merchantId, Instant.parse(instant), amount, status));
-    }
-
-    private static SaleTransaction sale(long merchantId, Instant date, String amount, SaleStatus status) {
-        return Instancio.of(SaleTransaction.class)
-                .set(field(SaleTransaction.class, "id"), null)
-                .set(field(SaleTransaction.class, "merchantId"), merchantId)
-                .set(field(SaleTransaction.class, "transactionDate"), date)
-                .set(field(SaleTransaction.class, "saleAmount"), new BigDecimal(amount))
-                .set(field(SaleTransaction.class, "status"), status)
-                .create();
     }
 
     private static ClickDaily clicks(long merchantId, LocalDate date, int count) {

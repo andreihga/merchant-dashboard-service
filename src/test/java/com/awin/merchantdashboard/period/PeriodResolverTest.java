@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class PeriodResolverTest {
 
     @Test
-    void last7DaysUsesRollingWindowEndingYesterday() {
+    void given_today_when_resolve_last_7_days_then_rolling_window_ending_yesterday() {
         PeriodResolver resolver = resolverAt("2026-10-18T12:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.LAST_7_DAYS);
@@ -21,7 +21,7 @@ class PeriodResolverTest {
     }
 
     @Test
-    void last30DaysUsesRollingWindowEndingYesterday() {
+    void given_today_when_resolve_last_30_days_then_rolling_window_ending_yesterday() {
         PeriodResolver resolver = resolverAt("2026-10-18T12:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.LAST_30_DAYS);
@@ -31,7 +31,7 @@ class PeriodResolverTest {
     }
 
     @Test
-    void last90DaysUsesRollingWindowEndingYesterday() {
+    void given_today_when_resolve_last_90_days_then_rolling_window_ending_yesterday() {
         PeriodResolver resolver = resolverAt("2026-10-18T12:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.LAST_90_DAYS);
@@ -41,7 +41,7 @@ class PeriodResolverTest {
     }
 
     @Test
-    void lastMonthIsPreviousCalendarMonthComparedWithMonthBefore() {
+    void given_today_when_resolve_last_month_then_previous_calendar_month_compared_with_month_before() {
         PeriodResolver resolver = resolverAt("2026-10-18T12:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.LAST_MONTH);
@@ -51,7 +51,7 @@ class PeriodResolverTest {
     }
 
     @Test
-    void lastMonthHandlesFebruaryInLeapYear() {
+    void given_leap_year_march_when_resolve_last_month_then_february_has_29_days() {
         PeriodResolver resolver = resolverAt("2024-03-15T00:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.LAST_MONTH);
@@ -61,7 +61,7 @@ class PeriodResolverTest {
     }
 
     @Test
-    void thisMonthRunsFromFirstThroughYesterdayWithEqualLengthPrevious() {
+    void given_mid_month_when_resolve_this_month_then_from_first_through_yesterday_with_equal_length_previous() {
         PeriodResolver resolver = resolverAt("2026-10-18T12:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.THIS_MONTH);
@@ -72,7 +72,7 @@ class PeriodResolverTest {
     }
 
     @Test
-    void thisMonthOnFirstIsEmptyWithEmptyPrevious() {
+    void given_first_of_month_when_resolve_this_month_then_empty_current_and_previous() {
         PeriodResolver resolver = resolverAt("2026-10-01T08:00:00Z");
 
         PeriodWindows windows = resolver.resolve(Period.THIS_MONTH);
