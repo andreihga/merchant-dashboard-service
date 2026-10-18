@@ -1,3 +1,7 @@
+app:
+  jwt:
+    secret: test-only-hmac-key-0123456789abcdef
+
 spring:
   datasource:
     url: jdbc:h2:mem:merchantdashboard;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1

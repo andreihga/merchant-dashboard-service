@@ -22,7 +22,7 @@
 
 ## Generated code
 
-Do not edit `build/generated`. The OpenAPI Generator writes models, `*ApiController`, and `*ApiDelegate` there. Hand-written code implements the delegates only. The contract is `src/main/resources/openapi/openapi.yaml`.
+The generator emits models and `*Api` interfaces only (`interfaceOnly`, no delegate). A hand-written `@RestController` in the domain's `controller` package implements the `*Api` interface and calls the service in the same domain. It adds no mapping annotations. Do not edit `build/generated`. The contract is `src/main/resources/openapi/openapi.yaml`.
 
 ## Flyway
 

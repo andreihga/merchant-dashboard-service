@@ -15,7 +15,7 @@ Secured REST backend (Java 25, Spring Boot 4, Flyway, Postgres; H2 in tests usin
 - Spring Web, Jakarta Bean Validation, Spring Data JPA.
 - Spring Security: OAuth2 resource server, HMAC JWT, BCrypt password hashes.
 - Flyway for schema. PostgreSQL for local (Docker Compose) and production. H2 in PostgreSQL mode for tests.
-- OpenAPI 3.1. The OpenAPI Generator Gradle plugin (`spring`, delegate pattern, Jakarta) generates the controllers.
+- OpenAPI 3.1. The OpenAPI Generator Gradle plugin (`spring`, `interfaceOnly`, Jakarta) generates models and `*Api` interfaces.
 - RFC 7807 `ProblemDetail` for errors.
 - Spotless for Java and `*.gradle.kts`.
 - JUnit 5 and MockMvc, from `spring-boot-starter-test`. Instancio creates test objects.
@@ -56,7 +56,7 @@ Trend response: `{ period, total, changePercent, currency, current:[{date,value}
 
 Each KPI is its own endpoint and service, so Revenue can be requested for a month and Transactions for 90 days independently. Errors use RFC 7807 `ProblemDetail` (400 invalid period, 401, 403, 404).
 
-**Contract.** `src/main/resources/openapi/openapi.yaml` (OpenAPI 3.1) is the source of truth, including the bearer scheme and `application/problem+json` errors. The OpenAPI Generator Gradle plugin (`spring` generator, `delegatePattern`, Jakarta) generates models, `*ApiController`, and `*ApiDelegate` into `build/generated`. Hand-written code implements the delegates only. During T1, confirm the generator release supports Spring Boot 4.
+**Contract.** `src/main/resources/openapi/openapi.yaml` (OpenAPI 3.1) is the source of truth, including the bearer scheme and `application/problem+json` errors. The generator emits models and `*Api` interfaces only (`interfaceOnly`, no delegate). A hand-written `@RestController` in the domain's `controller` package implements the `*Api` interface and calls the service in the same domain. It adds no mapping annotations. Do not edit `build/generated`. During T1, confirm the generator release supports Spring Boot 4.
 
 ## Architecture
 
@@ -75,7 +75,7 @@ flowchart LR
   Repositories --> DB[(Postgres / H2)]
 ```
 
-Hand-written packages under `com.awin.merchantdashboard`. Each domain owns its `model`, `repository`, `service`, and `controller`. A delegate implements the generated `*ApiDelegate` and lives in that domain's `controller` package.
+Hand-written packages under `com.awin.merchantdashboard`. Each domain owns its `model`, `repository`, `service`, and `controller`. A controller implements the generated `*Api` interface and lives in that domain's `controller` package.
 
 ```
 com.awin.merchantdashboard
@@ -85,25 +85,25 @@ com.awin.merchantdashboard
     model/                        AppUser
     repository/                   AppUserRepository
     service/                      login and token issuance
-    controller/                   POST /auth/token delegate
+    controller/                   POST /auth/token controller
   merchant/
     model/                        Merchant, UserMerchant
     repository/                   MerchantRepository, UserMerchantRepository
     service/                      merchant list, MerchantAccessGuard
-    controller/                   GET /merchants delegate
+    controller/                   GET /merchants controller
   kpi/
     model/                        SaleTransaction, SaleStatus, ClickDaily
     repository/                   SaleTransactionRepository, ClickDailyRepository
     service/                      revenue, transactions, clicks
-    controller/                   the three KPI delegates
+    controller/                   the three KPI controllers
   trend/
     service/                      revenue trend
-    controller/                   revenue-trend delegate
+    controller/                   revenue-trend controller
   todo/
     model/                        Offer, OfferStatus, ProductCategory, AffiliateApplication, ApplicationStatus
     repository/                   OfferRepository, ProductCategoryRepository, AffiliateApplicationRepository
     service/                      the four counters
-    controller/                   todos delegate
+    controller/                   todos controller
 ```
 
 `period` has no repository or controller. `trend` has no table of its own, so it has only `service` and `controller`.
@@ -216,16 +216,16 @@ The user commits and pushes. The agent does not run `git commit` or `git push`, 
 
 Implemented one by one, in the order listed below. Update the checkboxes as work completes.
 
-- [x] **T0 - Epic docs and skills:** write this file (`docs/EPIC.md`) and a short `AGENTS.md` (Gradle Kotlin DSL, Java 25, Spring Boot 4, do not edit `build/generated`, Flyway rules, implement only the named task, the user commits and pushes). Use `/skill-creator` to add `.cursor/skills/add-test/SKILL.md` (H2 with V1–V3, no `db/seed`, fixtures in the test, MockMvc with a JWT, fixed `Clock`, Instancio when a test creates an object, JaCoCo line coverage at or above 90% on hand-written `src/main`) and `.cursor/skills/add-endpoint/SKILL.md` (edit `openapi.yaml`, run the generator, implement the delegate only, call `MerchantAccessGuard`). Done when both docs exist, `AGENTS.md` states those rules, and both skill files exist and state those rules. The user commits and pushes; the agent does not.
+- [x] **T0 - Epic docs and skills:** write this file (`docs/EPIC.md`) and a short `AGENTS.md` (Gradle Kotlin DSL, Java 25, Spring Boot 4, do not edit `build/generated`, Flyway rules, implement only the named task, the user commits and pushes). Use `/skill-creator` to add `.cursor/skills/add-test/SKILL.md` (H2 with V1–V3, no `db/seed`, fixtures in the test, MockMvc with a JWT, fixed `Clock`, Instancio when a test creates an object, JaCoCo line coverage at or above 90% on hand-written `src/main`) and `.cursor/skills/add-endpoint/SKILL.md` (edit `openapi.yaml`, run the generator, implement the controller for the generated `*Api` interface, call `MerchantAccessGuard`). Done when both docs exist, `AGENTS.md` states those rules, and both skill files exist and state those rules. The user commits and pushes; the agent does not.
 - [x] **T1 - Project bootstrap:** `build.gradle.kts` (Spring Boot 4, Java toolchain 25, web, validation, security, oauth2-resource-server, data-jpa, flyway + flyway-database-postgresql, postgres, h2 for tests, OpenAPI Generator, Spotless, Actuator health, JSON request logs, Instancio for tests, JaCoCo), a minimal `openapi.yaml` so the generator has an input, `application.yml` + `application-local.yml`, `docker-compose.yml` for Postgres, `.cursor/hooks.json` (`stop` runs `spotlessApply`), `.githooks/pre-commit` (same, aborts if files change), `.gitignore`, README setup. Security is on the classpath but the smoke test is not locked down yet. JaCoCo is part of `check` and fails when hand-written `src/main` line coverage is below 90%. `build/generated` is excluded. Done when the app starts on H2, Flyway runs, the OpenAPI generator runs, `spotlessCheck` passes, `/actuator/health` is up without a token, and the coverage gate is wired.
 - [x] **T2 - Schema and persistence:** V1-V3 migrations for the 8 entities above, entities/repositories, Flyway migration test on H2 (same scripts as Postgres), test profile config. Done when a test applies V1–V3 on empty H2, `sale_transaction_pending_idx` is on `(merchant_id)` with no `WHERE`, and the test profile does not load `db/seed`.
-- [ ] **T3 - Security:** `SecurityFilterChain` in `config` (stateless, CSRF off, `/auth/**` and OpenAPI public, everything else authenticated). JWT encoder/decoder and login/token issuance in `auth.service` (`AppUser` is already in `auth.model`). The `POST /auth/token` delegate in `auth.controller`. `MerchantAccessGuard` in `merchant.service` (403 on foreign merchants). Tests for 401/403/200. The HMAC signing key is read from `JWT_SECRET` in `.env` for local runs and is not written in committed YAML. Tests set a fixed test-only value in the test profile. Done when a wrong password and a missing token return 401, a valid login returns a JWT whose subject is the user id and which expires in 1 hour, and a merchant the user is not linked to returns 403.
+- [ ] **T3 - Security:** `SecurityFilterChain` in `config` (stateless, CSRF off, `/auth/**` and OpenAPI public, everything else authenticated). JWT encoder/decoder and login/token issuance in `auth.service` (`AppUser` is already in `auth.model`). The `POST /auth/token` controller implementing the generated `*Api` interface in `auth.controller`. `MerchantAccessGuard` in `merchant.service` (403 on foreign merchants). Tests for 401/403/200. The HMAC signing key is read from `JWT_SECRET` in `.env` for local runs and is not written in committed YAML. Tests set a fixed test-only value in the test profile. Done when a wrong password and a missing token return 401, a valid login returns a JWT whose subject is the user id and which expires in 1 hour, and a merchant the user is not linked to returns 403.
 - [ ] **T4 - Period engine:** `Period`, `PeriodResolver` (range + previous range, injectable `Clock`), and `PercentageChange` in `period`, with unit tests for month boundaries and zero-division. Done when tests cover the rolling windows, `LAST_MONTH` against the month before it, `THIS_MONTH` on the 1st (value 0), and `changePercent` null when the previous value is 0.
 - [ ] **T9 - Errors and CORS:** `ProblemDetail` exception handler and CORS config in `config`, plus request validation. The bearer scheme is already in the spec. Done before the first endpoint so later tasks do not invent their own error shape. Done when an invalid request returns `application/problem+json` and the configured frontend origin is allowed.
-- [ ] **T5 - Merchants endpoint:** add `GET /merchants` to the spec, implement the generated delegate in `merchant.controller`, with the merchant list in `merchant.service`, limited to the user's access. Done when a token returns only that user's merchants, ordered by name then id, an empty link list is 200 `[]`, a missing token is 401, and the generated controller was not edited.
-- [ ] **T6 - KPI endpoints:** add the three KPI paths to the spec, implement the delegates in `kpi.controller`, with revenue, transactions, and clicks rules in `kpi.service` reading `kpi.model` and `kpi.repository`; integration tests proving independent periods per KPI. Done when one test requests revenue for one period and transactions for another and gets different windows, declined sales are excluded, revenue has currency and scale 2, and transactions and clicks are integers with no currency.
-- [ ] **T7 - Revenue trend endpoint:** add the path to the spec, implement the delegate in `trend.controller`, with revenue trend rules in `trend.service` reading `kpi.repository.SaleTransactionRepository`; daily current and previous series with zero-fill, total and % change. Done when every day in both windows is present, a day with no sales is 0, and `total` equals the sum of `current`.
-- [ ] **T8 - To-do list endpoint:** add the path to the spec, implement the delegate in `todo.controller`, with the four counters in `todo.service`. Offers, categories, and applications stay in `todo.model`. The pending-sale count reads `kpi.repository.SaleTransactionRepository`. Done when the response has the four counts, no period parameter, and an unknown or unlinked merchant returns 404 or 403.
+- [ ] **T5 - Merchants endpoint:** add `GET /merchants` to the spec, add a controller implementing the generated `*Api` interface in `merchant.controller`, with the merchant list in `merchant.service`, limited to the user's access. Done when a token returns only that user's merchants, ordered by name then id, an empty link list is 200 `[]`, a missing token is 401, and nothing under `build/generated` was edited.
+- [ ] **T6 - KPI endpoints:** add the three KPI paths to the spec, add controllers implementing the generated `*Api` interface in `kpi.controller`, with revenue, transactions, and clicks rules in `kpi.service` reading `kpi.model` and `kpi.repository`; integration tests proving independent periods per KPI. Done when one test requests revenue for one period and transactions for another and gets different windows, declined sales are excluded, revenue has currency and scale 2, and transactions and clicks are integers with no currency.
+- [ ] **T7 - Revenue trend endpoint:** add the path to the spec, add a controller implementing the generated `*Api` interface in `trend.controller`, with revenue trend rules in `trend.service` reading `kpi.repository.SaleTransactionRepository`; daily current and previous series with zero-fill, total and % change. Done when every day in both windows is present, a day with no sales is 0, and `total` equals the sum of `current`.
+- [ ] **T8 - To-do list endpoint:** add the path to the spec, add a controller implementing the generated `*Api` interface in `todo.controller`, with the four counters in `todo.service`. Offers, categories, and applications stay in `todo.model`. The pending-sale count reads `kpi.repository.SaleTransactionRepository`. Done when the response has the four counts, no period parameter, and an unknown or unlinked merchant returns 404 or 403.
 - [ ] **Prometheus:** after the endpoints exist, add the Micrometer Prometheus registry and a Prometheus service in `docker-compose.yml` that scrapes the app on the host. Use the Prometheus UI to see latency and status per endpoint. Done when a call to a KPI shows up in the Prometheus UI as a latency and status series for that path. The app still runs on the host.
 - [ ] **T10 - Hardening and docs:** end-to-end tests (login -> dashboard calls), README (run, auth example, curl samples), final status update of this file. Done when one test logs in and calls merchants, a KPI, the trend, and the to-do list, and the README can be followed to run the app and call one endpoint.
 

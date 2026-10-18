@@ -20,4 +20,12 @@ public class AppUser {
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
 }

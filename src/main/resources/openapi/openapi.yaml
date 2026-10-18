@@ -2,7 +2,35 @@ openapi: 3.1.0
 info:
   title: Merchant Dashboard API
   version: 0.1.0
-paths: {}
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/token:
+    post:
+      operationId: issueToken
+      tags:
+        - auth
+      summary: Issue an HMAC JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: HMAC JWT for the authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: Unknown user or wrong password
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   securitySchemes:
     bearerAuth:
@@ -32,3 +60,29 @@ components:
         instance:
           type: string
           format: uri
+    TokenRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    TokenResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: integer
+          format: int64
+          description: Seconds until the token expires
