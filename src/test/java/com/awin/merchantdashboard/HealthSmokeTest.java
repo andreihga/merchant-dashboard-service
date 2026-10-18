@@ -56,7 +56,7 @@ class HealthSmokeTest {
             try (ResultSet history =
                     statement.executeQuery("select count(*) from flyway_schema_history where version is not null")) {
                 assertThat(history.next()).isTrue();
-                assertThat(history.getInt(1)).isEqualTo(3);
+                assertThat(history.getInt(1)).isPositive();
             }
             try (ResultSet created = statement.executeQuery("select count(*) from flyway_schema_history")) {
                 assertThat(created.next()).isTrue();

@@ -22,17 +22,21 @@ import com.awin.merchantdashboard.todo.model.ProductCategory;
 import com.awin.merchantdashboard.todo.repository.AffiliateApplicationRepository;
 import com.awin.merchantdashboard.todo.repository.OfferRepository;
 import com.awin.merchantdashboard.todo.repository.ProductCategoryRepository;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
+import org.flywaydb.core.api.MigrationVersion;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -40,6 +44,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,16 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FlywayMigrationTest {
-
-    private static final List<String> TABLES = List.of(
-            "merchant",
-            "app_user",
-            "user_merchant",
-            "sale_transaction",
-            "click_daily",
-            "offer",
-            "product_category",
-            "affiliate_application");
 
     @Autowired
     private DataSource dataSource;
@@ -95,13 +91,19 @@ class FlywayMigrationTest {
     // Runs after the insert so a row that escapes that transaction fails here.
     @Test
     @Order(2)
-    void appliesV1ThroughV3OnEmptyH2WithoutSeed() throws Exception {
+    void appliesMigrationsOnEmptyH2WithoutSeed() throws Exception {
         assertThat(locations()).noneMatch(path -> path.contains("seed"));
-        assertThat(appliedVersions()).containsExactly("1", "2", "3");
+        assertThat(flyway.info().pending()).isEmpty();
+        List<String> expectedVersions = migrationVersionsOnClasspath();
+        assertThat(expectedVersions).isNotEmpty();
+        assertThat(appliedVersions()).containsExactlyElementsOf(expectedVersions);
 
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {
-            for (String table : TABLES) {
+            List<String> tables = schemaTablesExceptFlywayHistory(statement);
+            assertThat(tables).isNotEmpty();
+            for (String table : tables) {
+                assertThat(table).matches("[a-z][a-z0-9_]*");
                 try (ResultSet rows = statement.executeQuery("select count(*) from " + table)) {
                     assertThat(rows.next()).isTrue();
                     assertThat(rows.getLong(1)).as(table).isZero();
@@ -215,6 +217,35 @@ class FlywayMigrationTest {
             paths.add(location.getRootPath());
         }
         return paths;
+    }
+
+    private List<String> migrationVersionsOnClasspath() throws IOException {
+        Resource[] scripts =
+                new PathMatchingResourcePatternResolver().getResources("classpath*:db/migration/V*__*.sql");
+        List<String> versions = new ArrayList<>();
+        for (Resource script : scripts) {
+            String name = script.getFilename();
+            int separator = name.indexOf("__");
+            versions.add(name.substring(1, separator));
+        }
+        versions.sort(Comparator.comparing(MigrationVersion::fromVersion));
+        return versions;
+    }
+
+    private List<String> schemaTablesExceptFlywayHistory(Statement statement) throws SQLException {
+        List<String> tables = new ArrayList<>();
+        try (ResultSet rows = statement.executeQuery("""
+                select lower(table_name) from information_schema.tables
+                where lower(table_schema) = 'public'
+                  and table_type = 'BASE TABLE'
+                  and lower(table_name) <> 'flyway_schema_history'
+                order by table_name
+                """)) {
+            while (rows.next()) {
+                tables.add(rows.getString(1));
+            }
+        }
+        return tables;
     }
 
     private List<String> appliedVersions() throws Exception {
