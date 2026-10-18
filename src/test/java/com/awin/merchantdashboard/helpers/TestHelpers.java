@@ -3,8 +3,11 @@ package com.awin.merchantdashboard.helpers;
 import static org.instancio.Select.field;
 
 import com.awin.merchantdashboard.auth.model.AppUser;
+import com.awin.merchantdashboard.kpi.model.SaleStatus;
+import com.awin.merchantdashboard.kpi.model.SaleTransaction;
 import com.awin.merchantdashboard.merchant.model.Merchant;
 import com.awin.merchantdashboard.merchant.model.UserMerchant;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import org.instancio.Instancio;
@@ -46,6 +49,17 @@ public final class TestHelpers {
                 .set(field(Merchant.class, "id"), id)
                 .set(field(Merchant.class, "name"), name)
                 .set(field(Merchant.class, "currency"), "GBP")
+                .create();
+    }
+
+    /** An unsaved sale. The id is null so the database assigns it. */
+    public static SaleTransaction sale(long merchantId, Instant date, String amount, SaleStatus status) {
+        return Instancio.of(SaleTransaction.class)
+                .set(field(SaleTransaction.class, "id"), null)
+                .set(field(SaleTransaction.class, "merchantId"), merchantId)
+                .set(field(SaleTransaction.class, "transactionDate"), date)
+                .set(field(SaleTransaction.class, "saleAmount"), new BigDecimal(amount))
+                .set(field(SaleTransaction.class, "status"), status)
                 .create();
     }
 

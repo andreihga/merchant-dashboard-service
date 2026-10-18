@@ -91,7 +91,7 @@ class FlywayMigrationTest {
     // Runs after the insert so a row that escapes that transaction fails here.
     @Test
     @Order(2)
-    void appliesMigrationsOnEmptyH2WithoutSeed() throws Exception {
+    void given_empty_h2_when_flyway_migrates_then_schema_exists_without_seed() throws Exception {
         assertThat(locations()).noneMatch(path -> path.contains("seed"));
         assertThat(flyway.info().pending()).isEmpty();
         List<String> expectedVersions = migrationVersionsOnClasspath();
@@ -133,7 +133,7 @@ class FlywayMigrationTest {
     @Test
     @Order(1)
     @Transactional
-    void persistsARowForEachEntity() {
+    void given_migrated_schema_when_persist_each_entity_then_rows_are_saved() {
         long merchantId = 1001L;
         merchants.saveAndFlush(Instancio.of(Merchant.class)
                 .set(field(Merchant.class, "id"), merchantId)

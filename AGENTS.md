@@ -33,6 +33,7 @@ The generator emits models and `*Api` interfaces only (`interfaceOnly`, no deleg
 ## Testing
 
 - Add or update tests for meaningful behavior changes, including service unit tests and API integration tests when the task calls for them.
+- Name every `@Test` and `@ParameterizedTest` method in full snake_case as `given_x_when_y_then_z`. `@BeforeEach` and helpers do not use that form.
 - When a test creates an object, use Instancio. Set the fields the assertion depends on.
 - Shared test helpers live in `src/test/java/com/awin/merchantdashboard/helpers/TestHelpers.java`. Use them before writing a private helper in a test class. A helper that a second test needs moves there.
 - Only the login tests (`AuthSecurityTest`) call `POST /api/v1/auth/token`. Every other test gets its token from `TestHelpers.bearer(...)`.

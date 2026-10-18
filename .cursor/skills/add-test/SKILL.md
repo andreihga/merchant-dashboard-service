@@ -11,6 +11,10 @@ Inspect the production code, `src/main/resources/openapi/openapi.yaml`, and exis
 
 Assert observable behavior: a status, a body, a window, a count, or a percent. Cover the success, failure, and edge cases the task's acceptance criteria name. Do not assert private structure, and do not add cases the task does not ask for.
 
+## Naming
+
+Name every `@Test` and `@ParameterizedTest` method in full snake_case as `given_x_when_y_then_z`. Example: `given_no_token_when_get_revenue_trend_then_returns_401`. Do not mix camelCase inside the segments. `@BeforeEach` and private helpers stay descriptive and do not use that form.
+
 ## Service unit tests
 
 Use JUnit 5. Period, percent, and other pure logic tests do not start the application context. Pass a fixed `Clock` so "today" does not move between runs. Do not call `Clock.systemUTC()` inside the assertion path.

@@ -43,7 +43,7 @@ class MerchantsApiTest {
     private UserMerchantRepository links;
 
     @Test
-    void returnsOnlyTheCallersMerchantsOrderedByNameThenId() throws Exception {
+    void given_linked_merchants_when_get_merchants_then_only_callers_merchants_ordered_by_name_then_id() throws Exception {
         AppUser caller = users.saveAndFlush(user("caller"));
         AppUser other = users.saveAndFlush(user("other"));
         merchants.saveAndFlush(merchant(6003L, "Beta Shop"));
@@ -66,7 +66,7 @@ class MerchantsApiTest {
     }
 
     @Test
-    void userWithNoLinkedMerchantsGetsAnEmptyList() throws Exception {
+    void given_user_with_no_linked_merchants_when_get_merchants_then_returns_empty_list() throws Exception {
         AppUser loner = users.saveAndFlush(user("loner"));
         merchants.saveAndFlush(merchant(6005L, "Unlinked Shop"));
 
@@ -77,7 +77,7 @@ class MerchantsApiTest {
     }
 
     @Test
-    void missingTokenReturns401() throws Exception {
+    void given_no_token_when_get_merchants_then_returns_401() throws Exception {
         mockMvc.perform(get("/api/v1/merchants")).andExpect(status().isUnauthorized());
     }
 }

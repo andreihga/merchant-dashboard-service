@@ -34,4 +34,12 @@ public class SaleTransaction {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private SaleStatus status;
+
+    public Instant getTransactionDate() {
+        return transactionDate;
+    }
+
+    public BigDecimal getSaleAmount() {
+        return saleAmount;
+    }
 }
