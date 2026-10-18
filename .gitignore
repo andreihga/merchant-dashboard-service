@@ -33,3 +33,6 @@ venv/
 # Temp
 tmp/
 *.tmp
+
+# Local API client collections
+bruno/
