@@ -61,20 +61,32 @@ openApiGenerate {
     invokerPackage.set("com.awin.merchantdashboard.api")
     configOptions.set(
         mapOf(
-            "delegatePattern" to "true",
+            "delegatePattern" to "false",
             "useSpringBoot4" to "true",
             "useSpringBoot3" to "false",
             "useJackson3" to "true",
+            "useJspecify" to "true",
             "documentationProvider" to "none",
             "annotationLibrary" to "none",
-            "interfaceOnly" to "false",
+            "interfaceOnly" to "true",
+            "skipDefaultInterface" to "true",
             "openApiNullable" to "false",
             "hideGenerationTimestamp" to "true",
             "useTags" to "true",
             "dateLibrary" to "java8",
         ),
     )
-    globalProperties.set(mapOf("supportingFiles" to "false"))
+    // Setting any of these keys turns the others off, so apis and models are listed too.
+    globalProperties.set(
+        mapOf(
+            "apis" to "",
+            "models" to "",
+            "modelTests" to "false",
+            "modelDocs" to "false",
+            "apiTests" to "false",
+            "apiDocs" to "false",
+        ),
+    )
 }
 
 tasks.named("compileJava") {
