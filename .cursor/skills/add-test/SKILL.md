@@ -21,6 +21,14 @@ Mock a collaborator only when the test is about business logic and that collabor
 
 When a test needs a Java object, create it with Instancio. Set every field the assertion or the query depends on, such as id, status, amount, date, or merchant. Leave the other fields to Instancio so the test stays deterministic. A test that creates no object, such as a Flyway check, does not need Instancio.
 
+## Shared helpers
+
+Reusable test code lives in `src/test/java/com/awin/merchantdashboard/helpers/TestHelpers.java`. Read it before writing a test.
+
+- `user(username)`, `user(username, passwordHash)`, `merchant(id, name)`, and `link(userId, merchantId)` return unsaved Instancio objects. Save them with the repository in the test.
+- `bearer(jwtEncoder, userId)` returns a ready `Authorization` header value. Autowire the `JwtEncoder` bean.
+- Do not copy these into a test class. If a test needs a helper that another test could use, add it to `TestHelpers` as a `public static` method that takes its dependencies as arguments. Keep a helper private only when it is specific to one test.
+
 ## API integration tests
 
 API and persistence tests use `@SpringBootTest` and MockMvc. The database is H2 in PostgreSQL mode (`MODE=PostgreSQL`). Flyway applies V1–V3 from `src/main/resources/db/migration`, the same scripts production uses.
@@ -29,7 +37,7 @@ The test profile does not load `db/seed`. Tables start empty. Insert the rows th
 
 Assert the status and the response body. When the task is about a bad request, assert `application/problem+json`. When the response is computed from stored rows, the test must go through H2, not a mock.
 
-When the case calls the API, send a Bearer JWT. A missing or invalid token is 401. A known merchant the caller is not linked to is 403. An unknown `merchantId` is 404.
+When the case calls the API, send a Bearer JWT from `TestHelpers.bearer(...)`. Do not call `POST /api/v1/auth/token` to get one. Only the login tests in `AuthSecurityTest` exercise that endpoint. A missing or invalid token is 401. A known merchant the caller is not linked to is 403. An unknown `merchantId` is 404.
 
 When the case depends on a window, inject a fixed `Clock`.
 

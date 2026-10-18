@@ -34,6 +34,8 @@ The generator emits models and `*Api` interfaces only (`interfaceOnly`, no deleg
 
 - Add or update tests for meaningful behavior changes, including service unit tests and API integration tests when the task calls for them.
 - When a test creates an object, use Instancio. Set the fields the assertion depends on.
+- Shared test helpers live in `src/test/java/com/awin/merchantdashboard/helpers/TestHelpers.java`. Use them before writing a private helper in a test class. A helper that a second test needs moves there.
+- Only the login tests (`AuthSecurityTest`) call `POST /api/v1/auth/token`. Every other test gets its token from `TestHelpers.bearer(...)`.
 - Hand-written `src/main` stays at or above 90% line coverage. `build/generated` is excluded.
 - Run the relevant tests and report the actual result.
 - Do not claim a pass unless the run succeeded.
