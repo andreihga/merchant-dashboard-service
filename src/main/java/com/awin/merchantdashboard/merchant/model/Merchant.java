@@ -17,4 +17,16 @@ public class Merchant {
 
     @Column(nullable = false, length = 3)
     private String currency;
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
 }

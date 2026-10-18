@@ -1,7 +1,9 @@
 package com.awin.merchantdashboard.auth;
 
+import static com.awin.merchantdashboard.helpers.TestHelpers.link;
+import static com.awin.merchantdashboard.helpers.TestHelpers.merchant;
+import static com.awin.merchantdashboard.helpers.TestHelpers.user;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.instancio.Select.field;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,14 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.awin.merchantdashboard.auth.model.AppUser;
 import com.awin.merchantdashboard.auth.repository.AppUserRepository;
-import com.awin.merchantdashboard.merchant.model.Merchant;
-import com.awin.merchantdashboard.merchant.model.UserMerchant;
 import com.awin.merchantdashboard.merchant.repository.MerchantRepository;
 import com.awin.merchantdashboard.merchant.repository.UserMerchantRepository;
 import com.awin.merchantdashboard.merchant.service.MerchantAccessGuard;
 import com.jayway.jsonpath.JsonPath;
 import java.time.Duration;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,19 +73,11 @@ class AuthSecurityTest {
 
     @BeforeEach
     void insertUserAndMerchants() {
-        merchants.saveAndFlush(merchant(LINKED_MERCHANT_ID));
-        merchants.saveAndFlush(merchant(FOREIGN_MERCHANT_ID));
-        AppUser user = users.saveAndFlush(Instancio.of(AppUser.class)
-                .set(field(AppUser.class, "id"), null)
-                .set(field(AppUser.class, "username"), USERNAME)
-                .set(field(AppUser.class, "passwordHash"), PASSWORD_HASH)
-                .create());
+        merchants.saveAndFlush(merchant(LINKED_MERCHANT_ID, "Merchant " + LINKED_MERCHANT_ID));
+        merchants.saveAndFlush(merchant(FOREIGN_MERCHANT_ID, "Merchant " + FOREIGN_MERCHANT_ID));
+        AppUser user = users.saveAndFlush(user(USERNAME, PASSWORD_HASH));
         userId = user.getId();
-        links.saveAndFlush(Instancio.of(UserMerchant.class)
-                .set(field(UserMerchant.class, "id"), null)
-                .set(field(UserMerchant.class, "userId"), userId)
-                .set(field(UserMerchant.class, "merchantId"), LINKED_MERCHANT_ID)
-                .create());
+        links.saveAndFlush(link(userId, LINKED_MERCHANT_ID));
     }
 
     @Test
@@ -167,14 +158,6 @@ class AuthSecurityTest {
 
     private static String credentials(String username, String password) {
         return "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}";
-    }
-
-    private static Merchant merchant(long id) {
-        return Instancio.of(Merchant.class)
-                .set(field(Merchant.class, "id"), id)
-                .set(field(Merchant.class, "name"), "Merchant " + id)
-                .set(field(Merchant.class, "currency"), "GBP")
-                .create();
     }
 
     @RestController
