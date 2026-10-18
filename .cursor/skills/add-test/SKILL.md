@@ -27,7 +27,7 @@ Reusable test code lives in `src/test/java/com/awin/merchantdashboard/helpers/Te
 
 - `user(username)`, `user(username, passwordHash)`, `merchant(id, name)`, and `link(userId, merchantId)` return unsaved Instancio objects. Save them with the repository in the test.
 - `bearer(jwtEncoder, userId)` returns a ready `Authorization` header value. Autowire the `JwtEncoder` bean.
-- Do not copy these into a test class. If a test needs a helper that another test could use, add it to `TestHelpers` as a `public static` method that takes its dependencies as arguments. Keep a helper private only when it is specific to one test.
+- Do not copy `user`, `merchant`, `link`, or `bearer` into a test class. Add a new `public static` helper to `TestHelpers` only when a second test class needs it. Until then, keep it private in the one class that uses it.
 
 ## API integration tests
 
