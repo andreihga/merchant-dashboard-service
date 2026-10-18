@@ -11,11 +11,11 @@ Read the named task in `docs/EPIC.md` and implement only that path.
 
 Edit `src/main/resources/openapi/openapi.yaml`. That file is the contract, including the bearer scheme and `application/problem+json` errors. Then run the OpenAPI generator. It writes models, `*ApiController`, and `*ApiDelegate` into `build/generated`.
 
-Implement the generated `*ApiDelegate` in the feature package under `com.awin.merchantdashboard`. Do not edit anything in `build/generated`, including the generated controller.
+The hand-written class implements the generated `*ApiDelegate` and lives in that domain's `controller` package: `auth.controller`, `merchant.controller`, `kpi.controller`, `trend.controller`, or `todo.controller`. It calls the service in the same domain. It does not subclass the generated `*ApiController`, because that controller is already a Spring bean and a subclass would register the same routes twice. Do not edit anything in `build/generated`.
 
 ## Merchant access
 
-On a route under `/merchants/{merchantId}`, call `MerchantAccessGuard` before reading that merchant's data.
+On a route under `/merchants/{merchantId}`, call `MerchantAccessGuard` in `merchant.service` before reading that merchant's data.
 
 - A missing or invalid token is 401.
 - An unknown `merchantId` is 404.
