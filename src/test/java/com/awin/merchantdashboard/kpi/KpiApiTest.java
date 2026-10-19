@@ -93,8 +93,9 @@ class KpiApiTest {
     }
 
     @Test
-    void given_sales_in_different_windows_when_get_revenue_and_transactions_with_different_periods_then_each_uses_its_own_window()
-            throws Exception {
+    void
+            given_sales_in_different_windows_when_get_revenue_and_transactions_with_different_periods_then_each_uses_its_own_window()
+                    throws Exception {
         // 7-day window is 10-11..10-17 and its previous window is 10-04..10-10.
         saveSale(MERCHANT, "2026-10-15T09:00:00Z", "100.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-08T09:00:00Z", "50.0000", SaleStatus.APPROVED);

@@ -43,7 +43,8 @@ class MerchantsApiTest {
     private UserMerchantRepository links;
 
     @Test
-    void given_linked_merchants_when_get_merchants_then_only_callers_merchants_ordered_by_name_then_id() throws Exception {
+    void given_linked_merchants_when_get_merchants_then_only_callers_merchants_ordered_by_name_then_id()
+            throws Exception {
         AppUser caller = users.saveAndFlush(user("caller"));
         AppUser other = users.saveAndFlush(user("other"));
         merchants.saveAndFlush(merchant(6003L, "Beta Shop"));
