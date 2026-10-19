@@ -117,8 +117,8 @@ class AuthSecurityTest {
     }
 
     @Test
-    void given_valid_credentials_when_post_auth_token_then_returns_jwt_for_user_expiring_in_one_hour(CapturedOutput output)
-            throws Exception {
+    void given_valid_credentials_when_post_auth_token_then_returns_jwt_for_user_expiring_in_one_hour(
+            CapturedOutput output) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/auth/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(credentials(USERNAME, PASSWORD)))

@@ -41,8 +41,7 @@ public class TodoService {
                 offers.countByMerchantIdAndStatusAndExpiresAtBefore(merchantId, OfferStatus.ACTIVE, clock.instant());
         long categoriesToMap = categories.countByMerchantIdAndMappedFalse(merchantId);
         long commissionsToValidate = sales.countByMerchantIdAndStatus(merchantId, SaleStatus.PENDING);
-        long applicationsToReview =
-                applications.countByMerchantIdAndStatus(merchantId, ApplicationStatus.PENDING);
+        long applicationsToReview = applications.countByMerchantIdAndStatus(merchantId, ApplicationStatus.PENDING);
         return new TodoList(expiredOffers, categoriesToMap, commissionsToValidate, applicationsToReview);
     }
 }

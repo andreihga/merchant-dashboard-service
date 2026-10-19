@@ -92,8 +92,9 @@ class RevenueTrendApiTest {
     }
 
     @Test
-    void given_sales_across_windows_when_get_revenue_trend_for_last_7_days_then_every_day_present_missing_day_zero_and_total_equals_current()
-            throws Exception {
+    void
+            given_sales_across_windows_when_get_revenue_trend_for_last_7_days_then_every_day_present_missing_day_zero_and_total_equals_current()
+                    throws Exception {
         // Current is 10-11..10-17. Previous is 10-04..10-10.
         saveSale(MERCHANT, "2026-10-11T00:00:00Z", "10.0000", SaleStatus.APPROVED);
         saveSale(MERCHANT, "2026-10-11T12:00:00Z", "5.5000", SaleStatus.PENDING);
@@ -127,7 +128,8 @@ class RevenueTrendApiTest {
     }
 
     @Test
-    void given_sale_in_september_when_get_revenue_trend_for_last_month_then_every_day_of_each_month_present() throws Exception {
+    void given_sale_in_september_when_get_revenue_trend_for_last_month_then_every_day_of_each_month_present()
+            throws Exception {
         saveSale(MERCHANT, "2026-09-15T10:00:00Z", "12.0000", SaleStatus.APPROVED);
 
         String body = trend(MERCHANT, "LAST_MONTH")
