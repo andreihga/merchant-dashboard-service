@@ -25,6 +25,6 @@ class RevenueKpiController implements RevenueKpiApi {
         long userId = Long.parseLong(
                 SecurityContextHolder.getContext().getAuthentication().getName());
         guard.check(userId, merchantId);
-        return ResponseEntity.ok(service.revenue(merchantId, period));
+        return ResponseEntity.ok(service.getRevenue(merchantId, period));
     }
 }

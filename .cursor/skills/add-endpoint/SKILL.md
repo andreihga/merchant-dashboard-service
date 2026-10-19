@@ -15,6 +15,8 @@ The generator emits models and `*Api` interfaces only (`interfaceOnly`, no deleg
 
 The controller implements `*Api` and carries no mapping annotations of its own (`@RequestMapping`, `@PostMapping`, `@GetMapping`, `@Valid`). The `*Api` interface supplies them.
 
+Name the service method the controller calls as verb + noun (`getClicks`, `getRevenue`, `listMerchants`, `issueToken`). Do not use a bare noun (`clicks`, `revenue`).
+
 ## Merchant access
 
 On a route under `/merchants/{merchantId}`, call `MerchantAccessGuard` in `merchant.service` before reading that merchant's data.

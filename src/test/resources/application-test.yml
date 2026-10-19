@@ -1,6 +1,8 @@
 app:
   jwt:
     secret: test-only-hmac-key-0123456789abcdef
+  cors:
+    allowed-origins: http://localhost:3000
 
 spring:
   datasource:

@@ -28,7 +28,7 @@ public class TransactionsKpiService {
 
     /** The caller must already have passed the merchant access check. */
     @Transactional(readOnly = true)
-    public CountKpi transactions(long merchantId, Period period) {
+    public CountKpi getTransactions(long merchantId, Period period) {
         PeriodWindows windows = periodResolver.resolve(com.awin.merchantdashboard.period.Period.valueOf(period.name()));
         CountTotals totals = sales.countSales(
                 merchantId,

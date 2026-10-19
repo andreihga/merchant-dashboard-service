@@ -25,6 +25,6 @@ class ClicksKpiController implements ClicksKpiApi {
         long userId = Long.parseLong(
                 SecurityContextHolder.getContext().getAuthentication().getName());
         guard.check(userId, merchantId);
-        return ResponseEntity.ok(service.clicks(merchantId, period));
+        return ResponseEntity.ok(service.getClicks(merchantId, period));
     }
 }

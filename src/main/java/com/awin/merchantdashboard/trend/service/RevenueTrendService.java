@@ -41,7 +41,7 @@ public class RevenueTrendService {
 
     /** The caller must already have passed the merchant access check. */
     @Transactional(readOnly = true)
-    public RevenueTrend revenueTrend(long merchantId, Period period) {
+    public RevenueTrend getRevenueTrend(long merchantId, Period period) {
         PeriodWindows windows = periodResolver.resolve(com.awin.merchantdashboard.period.Period.valueOf(period.name()));
         Map<LocalDate, BigDecimal> byDay = revenueByDay(merchantId, windows);
         List<RevenueTrendPoint> current = dailyPoints(windows.current(), byDay);

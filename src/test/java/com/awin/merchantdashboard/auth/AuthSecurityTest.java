@@ -103,6 +103,13 @@ class AuthSecurityTest {
     }
 
     @Test
+    void given_no_token_when_get_swagger_ui_then_returns_401() throws Exception {
+        mockMvc.perform(get("/swagger-ui.html")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/swagger-ui/index.html")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void given_invalid_token_when_get_protected_resource_then_returns_401() throws Exception {
         mockMvc.perform(get("/api/v1/merchants/{merchantId}/access", LINKED_MERCHANT_ID)
                         .header("Authorization", "Bearer not-a-jwt"))

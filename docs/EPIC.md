@@ -21,7 +21,6 @@ Secured REST backend (Java 25, Spring Boot 4, Flyway, Postgres; H2 in tests usin
 - JUnit 5 and MockMvc, from `spring-boot-starter-test`. Instancio creates test objects.
 - JaCoCo. Hand-written `src/main` line coverage stays at or above 90%. `build/generated` is excluded. `check` fails below that.
 - JSON logs from the start, with a Micrometer trace id on each line. Actuator health on the main app.
-- Prometheus (Micrometer registry plus a Prometheus server in Compose) is added last, after the endpoints exist.
 
 Testcontainers and a trace backend are later options, not part of this stack. JDBC is not used.
 
@@ -77,6 +76,8 @@ flowchart LR
 
 Hand-written packages under `com.awin.merchantdashboard`. Each domain owns its `model`, `repository`, `service`, and `controller`. A controller implements the generated `*Api` interface and lives in that domain's `controller` package.
 
+**Service method names.** Public service methods that controllers call use verb + noun: `getClicks`, `getRevenue`, `getTransactions`, `getRevenueTrend`, `getTodos`, `listMerchants`, `issueToken`. Do not use a bare noun (`clicks`, `revenue`, `todos`).
+
 ```
 com.awin.merchantdashboard
   config/                         SecurityFilterChain, CORS, ProblemDetail, Flyway, logging
@@ -84,25 +85,25 @@ com.awin.merchantdashboard
   auth/
     model/                        AppUser
     repository/                   AppUserRepository
-    service/                      login and token issuance
+    service/                      issueToken
     controller/                   POST /auth/token controller
   merchant/
     model/                        Merchant, UserMerchant
     repository/                   MerchantRepository, UserMerchantRepository
-    service/                      merchant list, MerchantAccessGuard
+    service/                      listMerchants, MerchantAccessGuard
     controller/                   GET /merchants controller
   kpi/
     model/                        SaleTransaction, SaleStatus, ClickDaily
     repository/                   SaleTransactionRepository, ClickDailyRepository
-    service/                      revenue, transactions, clicks
+    service/                      getRevenue, getTransactions, getClicks
     controller/                   the three KPI controllers
   trend/
-    service/                      revenue trend
+    service/                      getRevenueTrend
     controller/                   revenue-trend controller
   todo/
     model/                        Offer, OfferStatus, ProductCategory, AffiliateApplication, ApplicationStatus
     repository/                   OfferRepository, ProductCategoryRepository, AffiliateApplicationRepository
-    service/                      the four counters
+    service/                      getTodos
     controller/                   todos controller
 ```
 
@@ -192,8 +193,6 @@ Shared by every merchant call except login: invalid or missing token is 401. Unk
 
 **Logs, from T1.** JSON to stdout. A request line has the method, path template, status, duration, trace id, and `merchantId`. It never includes the password, the token, or the response body. A 5xx logs the stack trace. A 4xx does not. Actuator `/actuator/health` includes the database on readiness.
 
-**Prometheus, last.** After the endpoints exist, add the Micrometer Prometheus registry and a Prometheus service in `docker-compose.yml`. The app stays on the host. Prometheus scrapes it and is the place to see latency and status per endpoint. No custom business metrics, and no Grafana.
-
 ## Testing strategy
 
 - Unit tests for period/percent logic.
@@ -209,7 +208,7 @@ This file is the only plan. One task per session, and the session does not start
 
 The user commits and pushes. The agent does not run `git commit` or `git push`, and does not open a pull request. When the implementation is finished, the agent ticks the checkbox, lists the files, and suggests a commit message. The working tree stays uncommitted.
 
-`AGENTS.md` stays short and points here. Repeatable steps live in project skills under `.cursor/skills/`. T0 creates `add-test` and `add-endpoint` there with the installed `/skill-creator` (Anthropic, user-level, not committed), from the rules in this file, before any Java exists. From T2 on, tests follow `add-test`. From T5 on, endpoints follow `add-endpoint`. If the first real test or the merchants endpoint shows a missing step, that session updates the skill. No custom agent.
+`AGENTS.md` stays short and points here. Repeatable steps live in project skills under `.cursor/skills/`. T0 creates `add-test` and `add-endpoint` there with the installed `/skill-creator` (Anthropic, user-level, not committed), from the rules in this file, before any Java exists. From T2 on, tests follow `add-test`. From T5 on, endpoints follow `add-endpoint`. Service methods called from controllers follow verb + noun (`getClicks`); `add-endpoint` and `/implement-task` state that rule. If the first real test or the merchants endpoint shows a missing step, that session updates the skill. No custom agent.
 
 **Formatting.** Spotless in `build.gradle.kts` formats Java and `*.gradle.kts`. It targets `src` only, never `build/generated`. Use a Java formatter release that supports Java 25, confirmed in T1. `spotlessCheck` is part of `check`. A project hook at `.cursor/hooks.json` runs `spotlessApply` on the `stop` event, once when the agent finishes a turn. `afterFileEdit` is the wrong event: it would start Gradle on every write. The hook fails open. A committed Git `pre-commit` hook (`.githooks/pre-commit`, `core.hooksPath=.githooks`) also runs `spotlessApply` and aborts the commit if that changes files, so they can be staged. It runs on the commits the user makes.
 
@@ -220,14 +219,14 @@ Implemented one by one, in the order listed below. Update the checkboxes as work
 - [x] **T0 - Epic docs and skills:** write this file (`docs/EPIC.md`) and a short `AGENTS.md` (Gradle Kotlin DSL, Java 25, Spring Boot 4, do not edit `build/generated`, Flyway rules, implement only the named task, the user commits and pushes). Use `/skill-creator` to add `.cursor/skills/add-test/SKILL.md` (H2 with V1–V3, no `db/seed`, fixtures in the test, MockMvc with a JWT, fixed `Clock`, Instancio when a test creates an object, `given_x_when_y_then_z` snake_case test method names, JaCoCo line coverage at or above 90% on hand-written `src/main`) and `.cursor/skills/add-endpoint/SKILL.md` (edit `openapi.yaml`, run the generator, implement the controller for the generated `*Api` interface, call `MerchantAccessGuard`). Done when both docs exist, `AGENTS.md` states those rules, and both skill files exist and state those rules. The user commits and pushes; the agent does not.
 - [x] **T1 - Project bootstrap:** `build.gradle.kts` (Spring Boot 4, Java toolchain 25, web, validation, security, oauth2-resource-server, data-jpa, flyway + flyway-database-postgresql, postgres, h2 for tests, OpenAPI Generator, Spotless, Actuator health, JSON request logs, Instancio for tests, JaCoCo), a minimal `openapi.yaml` so the generator has an input, `application.yml` + `application-local.yml`, `docker-compose.yml` for Postgres, `.cursor/hooks.json` (`stop` runs `spotlessApply`), `.githooks/pre-commit` (same, aborts if files change), `.gitignore`, README setup. Security is on the classpath but the smoke test is not locked down yet. JaCoCo is part of `check` and fails when hand-written `src/main` line coverage is below 90%. `build/generated` is excluded. Done when the app starts on H2, Flyway runs, the OpenAPI generator runs, `spotlessCheck` passes, `/actuator/health` is up without a token, and the coverage gate is wired.
 - [x] **T2 - Schema and persistence:** V1-V3 migrations for the 8 entities above, entities/repositories, Flyway migration test on H2 (same scripts as Postgres), test profile config. Done when a test applies V1–V3 on empty H2, `sale_transaction_pending_idx` is on `(merchant_id)` with no `WHERE`, and the test profile does not load `db/seed`.
-- [x] **T3 - Security:** `SecurityFilterChain` in `config` (stateless, CSRF off, `/auth/**` and OpenAPI public, everything else authenticated). JWT encoder/decoder and login/token issuance in `auth.service` (`AppUser` is already in `auth.model`). The `POST /auth/token` controller implementing the generated `*Api` interface in `auth.controller`. `MerchantAccessGuard` in `merchant.service` (403 on foreign merchants). Tests for 401/403/200. The HMAC signing key is read from `JWT_SECRET` in `.env` for local runs and is not written in committed YAML. Tests set a fixed test-only value in the test profile. Done when a wrong password and a missing token return 401, a valid login returns a JWT whose subject is the user id and which expires in 1 hour, and a merchant the user is not linked to returns 403.
+- [x] **T3 - Security:** `SecurityFilterChain` in `config` (stateless, CSRF off, `/auth/**` public, everything else authenticated; Swagger UI / OpenAPI docs are not exposed). JWT encoder/decoder and login/token issuance in `auth.service` (`AppUser` is already in `auth.model`). The `POST /auth/token` controller implementing the generated `*Api` interface in `auth.controller`. `MerchantAccessGuard` in `merchant.service` (403 on foreign merchants). Tests for 401/403/200. The HMAC signing key is read from `JWT_SECRET` in `.env` for local runs and is not written in committed YAML. Tests set a fixed test-only value in the test profile. Done when a wrong password and a missing token return 401, a valid login returns a JWT whose subject is the user id and which expires in 1 hour, and a merchant the user is not linked to returns 403.
 - [x] **T4 - Period engine:** `Period`, `PeriodResolver` (range + previous range, injectable `Clock`), and `PercentageChange` in `period`, with unit tests for month boundaries and zero-division. Done when tests cover the rolling windows, `LAST_MONTH` against the month before it, `THIS_MONTH` on the 1st (value 0), and `changePercent` null when the previous value is 0.
-- [ ] **T9 - Errors and CORS:** `ProblemDetail` exception handler and CORS config in `config`, plus request validation. The bearer scheme is already in the spec. Done before the first endpoint so later tasks do not invent their own error shape. Done when an invalid request returns `application/problem+json` and the configured frontend origin is allowed.
+- [x] **T9 - Errors:** `ProblemDetail` exception handler in `config`, plus request validation. The bearer scheme is already in the spec. Done before the first endpoint so later tasks do not invent their own error shape. Done when an invalid request returns `application/problem+json`.
+- [x] **T11 - CORS:** CORS config in `config` for the configured frontend origin. Done when the allowed origin is accepted on preflight and a disallowed origin is not.
 - [x] **T5 - Merchants endpoint:** add `GET /merchants` to the spec, add a controller implementing the generated `*Api` interface in `merchant.controller`, with the merchant list in `merchant.service`, limited to the user's access. Done when a token returns only that user's merchants, ordered by name then id, an empty link list is 200 `[]`, a missing token is 401, and nothing under `build/generated` was edited.
 - [x] **T6 - KPI endpoints:** add the three KPI paths to the spec, add controllers implementing the generated `*Api` interface in `kpi.controller`, with revenue, transactions, and clicks rules in `kpi.service` reading `kpi.model` and `kpi.repository`; integration tests proving independent periods per KPI. Done when one test requests revenue for one period and transactions for another and gets different windows, declined sales are excluded, revenue has currency and scale 2, and transactions and clicks are integers with no currency.
 - [x] **T7 - Revenue trend endpoint:** add the path to the spec, add a controller implementing the generated `*Api` interface in `trend.controller`, with revenue trend rules in `trend.service` reading `kpi.repository.SaleTransactionRepository`; daily current and previous series with zero-fill, total and % change. Done when every day in both windows is present, a day with no sales is 0, and `total` equals the sum of `current`.
 - [x] **T8 - To-do list endpoint:** add the path to the spec, add a controller implementing the generated `*Api` interface in `todo.controller`, with the four counters in `todo.service`. Offers, categories, and applications stay in `todo.model`. The pending-sale count reads `kpi.repository.SaleTransactionRepository`. Done when the response has the four counts, no period parameter, and an unknown or unlinked merchant returns 404 or 403.
-- [ ] **Prometheus:** after the endpoints exist, add the Micrometer Prometheus registry and a Prometheus service in `docker-compose.yml` that scrapes the app on the host. Use the Prometheus UI to see latency and status per endpoint. Done when a call to a KPI shows up in the Prometheus UI as a latency and status series for that path. The app still runs on the host.
 - [ ] **T10 - Hardening and docs:** end-to-end tests (login -> dashboard calls), README (run, auth example, curl samples), final status update of this file. Done when one test logs in and calls merchants, a KPI, the trend, and the to-do list, and the README can be followed to run the app and call one endpoint.
 
 ## Open items to confirm before T1

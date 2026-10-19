@@ -25,6 +25,6 @@ class RevenueTrendController implements RevenueTrendApi {
         long userId = Long.parseLong(
                 SecurityContextHolder.getContext().getAuthentication().getName());
         guard.check(userId, merchantId);
-        return ResponseEntity.ok(service.revenueTrend(merchantId, period));
+        return ResponseEntity.ok(service.getRevenueTrend(merchantId, period));
     }
 }
