@@ -35,7 +35,7 @@ public class RevenueKpiService {
 
     /** The caller must already have passed the merchant access check. */
     @Transactional(readOnly = true)
-    public RevenueKpi revenue(long merchantId, Period period) {
+    public RevenueKpi getRevenue(long merchantId, Period period) {
         PeriodWindows windows = periodResolver.resolve(com.awin.merchantdashboard.period.Period.valueOf(period.name()));
         RevenueTotals totals = sales.sumRevenue(
                 merchantId,

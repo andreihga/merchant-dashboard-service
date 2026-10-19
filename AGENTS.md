@@ -22,7 +22,7 @@
 
 ## Generated code
 
-The generator emits models and `*Api` interfaces only (`interfaceOnly`, no delegate). A hand-written `@RestController` in the domain's `controller` package implements the `*Api` interface and calls the service in the same domain. It adds no mapping annotations. Do not edit `build/generated`. The contract is `src/main/resources/openapi/openapi.yaml`.
+The generator emits models and `*Api` interfaces only (`interfaceOnly`, no delegate). A hand-written `@RestController` in the domain's `controller` package implements the `*Api` interface and calls the service in the same domain. It adds no mapping annotations. Do not edit `build/generated`. The contract is `src/main/resources/openapi/openapi.yaml`. Service methods called from controllers use verb + noun (`getClicks`, `listMerchants`), not a bare noun.
 
 ## Flyway
 

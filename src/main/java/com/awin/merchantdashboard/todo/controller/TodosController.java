@@ -24,6 +24,6 @@ class TodosController implements TodosApi {
         long userId = Long.parseLong(
                 SecurityContextHolder.getContext().getAuthentication().getName());
         guard.check(userId, merchantId);
-        return ResponseEntity.ok(service.todos(merchantId));
+        return ResponseEntity.ok(service.getTodos(merchantId));
     }
 }

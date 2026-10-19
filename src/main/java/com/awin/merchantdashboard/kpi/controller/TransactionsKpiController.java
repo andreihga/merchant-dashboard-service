@@ -25,6 +25,6 @@ class TransactionsKpiController implements TransactionsKpiApi {
         long userId = Long.parseLong(
                 SecurityContextHolder.getContext().getAuthentication().getName());
         guard.check(userId, merchantId);
-        return ResponseEntity.ok(service.transactions(merchantId, period));
+        return ResponseEntity.ok(service.getTransactions(merchantId, period));
     }
 }

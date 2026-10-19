@@ -21,6 +21,6 @@ class MerchantController implements MerchantsApi {
     public ResponseEntity<List<Merchant>> listMerchants() {
         long userId = Long.parseLong(
                 SecurityContextHolder.getContext().getAuthentication().getName());
-        return ResponseEntity.ok(merchantService.listAccessible(userId));
+        return ResponseEntity.ok(merchantService.listMerchants(userId));
     }
 }

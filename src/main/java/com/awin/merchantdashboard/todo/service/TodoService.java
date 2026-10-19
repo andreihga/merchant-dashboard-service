@@ -36,7 +36,7 @@ public class TodoService {
 
     /** The caller must already have passed the merchant access check. */
     @Transactional(readOnly = true)
-    public TodoList todos(long merchantId) {
+    public TodoList getTodos(long merchantId) {
         long expiredOffers =
                 offers.countByMerchantIdAndStatusAndExpiresAtBefore(merchantId, OfferStatus.ACTIVE, clock.instant());
         long categoriesToMap = categories.countByMerchantIdAndMappedFalse(merchantId);

@@ -16,7 +16,7 @@ public class MerchantService {
     }
 
     @Transactional(readOnly = true)
-    public List<Merchant> listAccessible(long userId) {
+    public List<Merchant> listMerchants(long userId) {
         // The entity shares the generated model's simple name, so it is never named here.
         return merchants.findAccessibleByUser(userId).stream()
                 .map(m -> new Merchant(m.getId(), m.getName(), m.getCurrency()))
