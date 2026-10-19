@@ -65,6 +65,7 @@ class ErrorHandlingTest {
                         .header(HttpHeaders.AUTHORIZATION, bearer(jwtEncoder, caller.getId())))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type").exists())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.detail").exists());
@@ -77,6 +78,7 @@ class ErrorHandlingTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type").exists())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.detail").exists());
